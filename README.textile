@@ -13,14 +13,15 @@ h2. Example
 This Camel component lets you both request the jobs for processing and supply them to Beanstald daemon. Our simple demo routes may look like
 
 bc. from("beanstalk:testTube").
-   log("Processing job #${in.header.beanstalk.jobId} with body ${in.body}").
+   log("Processing job #${property.beanstalk.jobId} with body ${in.body}").
    process(new Processor() {
-     @override public void process(Exchange exchange) {
+     @Override
+     public void process(Exchange exchange) {
        // try to make integer value out of body
        exchange.getIn().setBody( Integer.valueOf(exchange.getIn().getBody(classOf[String])) );
      }
    }).
-   log("Parsed job #${in.header.beanstalk.jobId} to body ${in.body}");
+   log("Parsed job #${property.beanstalk.jobId} to body ${in.body}");
 
 bc. from("timer:dig?period=30seconds").
    setBody(constant(10)).log("Kick ${in.body} buried/delayed tasks").
