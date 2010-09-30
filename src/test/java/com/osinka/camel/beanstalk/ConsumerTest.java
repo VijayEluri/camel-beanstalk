@@ -17,6 +17,7 @@
 package com.osinka.camel.beanstalk;
 
 import com.surftools.BeanstalkClient.Job;
+import com.surftools.BeanstalkClient.BeanstalkException;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;

@@ -91,10 +91,11 @@ public class ConnectionSettings {
      * <p>
      * <code>watch(tube)</code> is applied for every tube during this call.
      *
+     * @param useBlockIO configuration param to {@link Client}
      * @return {@link Client} instance
      */
-    public Client newReadingClient() {
-        final ClientImpl client = new ClientImpl(host, port);
+    public Client newReadingClient(boolean useBlockIO) {
+        final ClientImpl client = new ClientImpl(host, port, useBlockIO);
         for (String tube : tubes)
             client.watch(tube);
         return client;

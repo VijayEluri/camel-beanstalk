@@ -51,17 +51,14 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
     private final transient Log LOG = LogFactory.getLog(BeanstalkConsumer.class);
 
     String onFailure = BeanstalkComponent.COMMAND_BURY;
+    boolean useBlockIO = true;
 
     private ExecutorService beanstalkExecutor;
     private Client client = null;
 
     private final Synchronization sync = new ExchangeSync();
-    private final Runnable initTask = new Runnable() {
-        @Override
-        public void run() {
-            client = getEndpoint().getConnection().newReadingClient();
-        }
-    };
+    private final Runnable closeTask = new CloseTask();
+    private final Runnable initTask = new InitTask();
     private final Callable<Exchange> pollTask = new Callable<Exchange>() {
         final Integer NO_WAIT = Integer.valueOf(0);
 
@@ -86,6 +83,7 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
                 return exchange;
             } catch (BeanstalkException e) {
                 LOG.error("Beanstalk client error", e);
+		beanstalkExecutor.submit(closeTask);
                 beanstalkExecutor.submit(initTask);
                 return null;
             }
@@ -119,6 +117,14 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
         this.onFailure = onFailure;
     }
 
+    public boolean getUseBlockIO() {
+	return useBlockIO;
+    }
+
+    public void setUseBlockIO(boolean useBlockIO) {
+	this.useBlockIO = useBlockIO;
+    }
+
     @Override
     public BeanstalkEndpoint getEndpoint() {
         return (BeanstalkEndpoint) super.getEndpoint();
@@ -135,6 +141,21 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
     protected void doStop() throws Exception {
         super.doStop();
         beanstalkExecutor.shutdown();
+    }
+
+    class CloseTask implements Runnable {
+	@Override
+	public void run() {
+	    if (client != null)
+		client.close();
+	}
+    }
+
+    class InitTask implements Runnable {
+        @Override
+        public void run() {
+            client = getEndpoint().getConnection().newReadingClient(useBlockIO);
+        }
     }
 
     class ExchangeSync implements Synchronization {

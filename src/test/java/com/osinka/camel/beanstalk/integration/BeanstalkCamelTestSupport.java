@@ -36,6 +36,6 @@ public abstract class BeanstalkCamelTestSupport extends CamelTestSupport {
 
         ConnectionSettings conn = connFactory.parseUri(tubeName);
         writer = conn.newWritingClient();
-        reader = conn.newReadingClient();
+        reader = conn.newReadingClient(false);
     }
 }

@@ -70,7 +70,7 @@ class MockConnectionSettings extends ConnectionSettings {
     }
 
     @Override
-    public Client newReadingClient() {
+    public Client newReadingClient(boolean useBlockIO) {
         return client;
     }
 
