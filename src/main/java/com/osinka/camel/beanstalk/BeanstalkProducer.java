@@ -23,7 +23,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.AsyncProcessor;
 import org.apache.camel.impl.DefaultProducer;
 import com.osinka.camel.beanstalk.processors.CommandProcessor;
-import com.osinka.camel.beanstalk.processors.ProcessExchangeTask;
 
 /**
  *
@@ -36,19 +35,17 @@ public class BeanstalkProducer extends DefaultProducer implements AsyncProcessor
     public BeanstalkProducer(BeanstalkEndpoint endpoint, final CommandProcessor processor) throws Exception {
         super(endpoint);
         this.processor = processor;
-
     }
 
     @Override
     public void process(final Exchange exchange) throws Exception {
-        Future f = executorService.submit(new ProcessExchangeTask(exchange, processor));
-        f.get();
+        processor.process(exchange);
     }
 
     @Override
     public boolean process(final Exchange exchange, final AsyncCallback callback) {
         try {
-            executorService.submit(new ProcessExchangeTask(exchange, processor, callback));
+            executorService.submit(new ProcessExchangeTask(exchange, callback));
         } catch (Throwable t) {
             exchange.setException(t);
             callback.done(true);
@@ -60,17 +57,33 @@ public class BeanstalkProducer extends DefaultProducer implements AsyncProcessor
     @Override
     public void doStart() {
         executorService = getEndpoint().getCamelContext().getExecutorServiceStrategy().newSingleThreadExecutor(this, "Beanstalk");
-        // The first task is to init CommandProcessor.
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                processor.init();
-            }
-        });
+        processor.init();
     }
 
     @Override
     public void doStop() {
         executorService.shutdown();
+    }
+
+    private class ProcessExchangeTask implements Runnable {
+        private final Exchange exchange;
+        private final AsyncCallback callback;
+
+        public ProcessExchangeTask(Exchange exchange, AsyncCallback callback) {
+            assert callback != null;
+            this.exchange = exchange;
+            this.callback = callback;
+        }
+
+        @Override
+            public void run() {
+            try {
+                processor.process(exchange);
+            } catch (Throwable t) {
+                exchange.setException(t);
+            } finally {
+                callback.done(false);
+            }
+        }
     }
 }

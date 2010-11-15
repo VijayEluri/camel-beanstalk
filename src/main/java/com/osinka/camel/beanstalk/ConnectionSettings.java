@@ -81,6 +81,7 @@ public class ConnectionSettings {
         final String tube = tubes.length > 0 ? tubes[0] : BeanstalkComponent.DEFAULT_TUBE;
 
         final ClientImpl client = new ClientImpl(host, port);
+        client.setUniqueConnectionPerThread(false);
         client.useTube(tube);
         return client;
     }
@@ -96,6 +97,7 @@ public class ConnectionSettings {
      */
     public Client newReadingClient(boolean useBlockIO) {
         final ClientImpl client = new ClientImpl(host, port, useBlockIO);
+        client.setUniqueConnectionPerThread(false);
         for (String tube : tubes)
             client.watch(tube);
         return client;
