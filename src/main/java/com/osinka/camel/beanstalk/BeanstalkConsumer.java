@@ -112,12 +112,12 @@ public class BeanstalkConsumer extends PollingConsumerSupport {
     }
 
     @Override
-    public void doStart() {
+    protected void doStart() {
         client = getEndpoint().getConnection().newReadingClient(useBlockIO);
     }
 
     @Override
-    public void doStop() {
+    protected void doStop() {
     }
 
     class ExchangeSync implements Synchronization {

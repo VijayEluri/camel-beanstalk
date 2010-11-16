@@ -55,13 +55,13 @@ public class BeanstalkProducer extends DefaultProducer implements AsyncProcessor
     }
 
     @Override
-    public void doStart() {
+    protected void doStart() {
         executorService = getEndpoint().getCamelContext().getExecutorServiceStrategy().newSingleThreadExecutor(this, "Beanstalk");
         processor.init();
     }
 
     @Override
-    public void doStop() {
+    protected void doStop() {
         executorService.shutdown();
     }
 
