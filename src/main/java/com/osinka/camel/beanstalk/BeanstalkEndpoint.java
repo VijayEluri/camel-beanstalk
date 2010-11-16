@@ -16,26 +16,32 @@
 
 package com.osinka.camel.beanstalk;
 
+import java.util.Map;
+import java.util.HashMap;
 import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Component;
-import org.apache.camel.Consumer;
+import org.apache.camel.PollingConsumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
+import org.apache.camel.ResolveEndpointFailedException;
 import com.osinka.camel.beanstalk.processors.*;
-import org.apache.camel.impl.ScheduledPollEndpoint;
+import org.apache.camel.impl.DefaultPollingEndpoint;
+import org.apache.camel.util.EndpointHelper;
 
 /**
  * @author <a href="mailto:azarov@osinka.com">Alexander Azarov</a>
  * @see BeanstalkConsumer
  * @see PutProducer
  */
-public class BeanstalkEndpoint extends ScheduledPollEndpoint {
+public class BeanstalkEndpoint extends DefaultPollingEndpoint {
     final ConnectionSettings conn;
 
     String command      = BeanstalkComponent.COMMAND_PUT;
     long priority       = BeanstalkComponent.DEFAULT_PRIORITY;
     int delay           = BeanstalkComponent.DEFAULT_DELAY;
     int timeToRun       = BeanstalkComponent.DEFAULT_TIME_TO_RUN;
+
+    private Map<String, Object> pollingConsumerProperties = new HashMap<String,Object>();
 
     BeanstalkEndpoint(final String uri, final Component component, final ConnectionSettings conn) {
         super(uri, component);
@@ -112,12 +118,35 @@ public class BeanstalkEndpoint extends ScheduledPollEndpoint {
     }
 
     @Override
-    public Consumer createConsumer(Processor processor) throws Exception {
-        BeanstalkConsumer consumer = new BeanstalkConsumer(this, processor);
-        configureConsumer(consumer);
+    public PollingConsumer createPollingConsumer() throws Exception {
+        BeanstalkConsumer consumer = new BeanstalkConsumer(this);
+        configurePollingConsumer(consumer);
         return consumer;
     }
 
+    @Override 
+    public void setConsumerProperties(Map<String, Object> consumerProperties) {
+        super.setConsumerProperties(consumerProperties);
+        setPollingConsumerProperties(consumerProperties);
+    }
+
+    public void setPollingConsumerProperties(Map<String, Object> consumerProperties) {
+        pollingConsumerProperties.putAll(consumerProperties);
+        consumerProperties.clear();
+    }
+
+    protected void configurePollingConsumer(BeanstalkConsumer consumer) throws Exception {
+        if (!pollingConsumerProperties.isEmpty()) {
+            EndpointHelper.setProperties(getCamelContext(), consumer, pollingConsumerProperties);
+            if (pollingConsumerProperties.size() > 0) {
+                throw new ResolveEndpointFailedException(this.getEndpointUri(), "There are " + pollingConsumerProperties.size()
+                    + " parameters that couldn't be set on the endpoint consumer."
+                    + " Check the uri if the parameters are spelt correctly and that they are properties of the endpoint."
+                    + " Unknown consumer parameters=[" + pollingConsumerProperties + "]");
+            }
+        }
+    }
+    
     @Override
     public boolean isSingleton() {
         return true;
