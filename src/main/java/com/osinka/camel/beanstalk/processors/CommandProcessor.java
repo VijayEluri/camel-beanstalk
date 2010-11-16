@@ -20,4 +20,5 @@ import org.apache.camel.Processor;
 
 public interface CommandProcessor extends Processor {
     public void init();
+    public void close();
 }

@@ -37,7 +37,7 @@ public class DeleteProcessor extends DefaultProcessor {
     }
 
     @Override
-    public void process(Exchange exchange) throws NoSuchHeaderException {
+    public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException {
         clientNotNull(exchange);
 
         final Long jobId = BeanstalkExchangeHelper.getJobID(exchange);

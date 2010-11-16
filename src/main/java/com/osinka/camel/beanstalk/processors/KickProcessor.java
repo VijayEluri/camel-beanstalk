@@ -17,6 +17,7 @@
 package com.osinka.camel.beanstalk.processors;
 
 import com.osinka.camel.beanstalk.BeanstalkEndpoint;
+import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.Message;
@@ -33,7 +34,7 @@ public class KickProcessor extends DefaultProcessor {
     }
 
     @Override
-    public void process(Exchange exchange) throws NoSuchHeaderException, InvalidPayloadException {
+    public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException, InvalidPayloadException {
         clientNotNull(exchange);
 
         final Integer jobs = ExchangeHelper.getMandatoryInBody(exchange, Integer.class);

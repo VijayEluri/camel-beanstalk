@@ -16,6 +16,7 @@
 
 package com.osinka.camel.beanstalk;
 
+import com.surftools.BeanstalkClient.BeanstalkException;
 import com.osinka.camel.beanstalk.processors.*;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.EndpointInject;
@@ -350,6 +351,50 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         assertNotNull("Job ID in 'In' message", jobIdIn);
 
         verify(client).put(priority, delay, timeToRun, payload);
+    }
+
+    @Test
+    public void test1BeanstalkException() throws Exception {
+        final long priority = 1020;
+        final int delay = 50;
+        final int timeToRun = 75;
+        final byte[] payload = Helper.stringToBytes(testMessage);
+        final long jobId = 113;
+
+        when(client.put(priority, delay, timeToRun, payload))
+            .thenThrow(new BeanstalkException("test"))
+            .thenReturn(jobId);
+
+        resultEndpoint.expectedMessageCount(1);
+        resultEndpoint.allMessages().body().isEqualTo(testMessage);
+        resultEndpoint.allMessages().header(Headers.JOB_ID).isEqualTo(Long.valueOf(jobId));
+
+        direct.sendBodyAndHeader(testMessage, Headers.TIME_TO_RUN, timeToRun);
+        resultEndpoint.assertIsSatisfied();
+
+        final Long jobIdIn = resultEndpoint.getReceivedExchanges().get(0).getIn().getHeader(Headers.JOB_ID, Long.class);
+        assertNotNull("Job ID in 'In' message", jobIdIn);
+
+        verify(client, times(1)).close();
+        verify(client, times(2)).put(priority, delay, timeToRun, payload);
+    }
+
+    @Test(expected=CamelExecutionException.class)
+    public void test2BeanstalkException() throws Exception {
+        final long jobId = 111;
+
+        when(client.touch(jobId))
+            .thenThrow(new BeanstalkException("test"));
+
+        endpoint.setCommand(BeanstalkComponent.COMMAND_TOUCH);
+        template.send(endpoint, ExchangePattern.InOnly, new Processor() {
+            public void process(Exchange exchange) {
+                exchange.getIn().setHeader(Headers.JOB_ID, jobId);
+            }
+        });
+
+        verify(client, times(2)).touch(jobId);
+        verify(client, times(1)).close();
     }
 
     @Override

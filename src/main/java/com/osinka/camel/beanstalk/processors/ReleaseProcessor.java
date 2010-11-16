@@ -38,7 +38,7 @@ public class ReleaseProcessor extends DefaultProcessor {
     }
 
     @Override
-    public void process(Exchange exchange) throws NoSuchHeaderException {
+    public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException {
         clientNotNull(exchange);
 
         final Message in = exchange.getIn();

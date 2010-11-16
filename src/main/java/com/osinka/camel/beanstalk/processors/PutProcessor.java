@@ -19,6 +19,7 @@ package com.osinka.camel.beanstalk.processors;
 import com.osinka.camel.beanstalk.BeanstalkEndpoint;
 import com.osinka.camel.beanstalk.BeanstalkExchangeHelper;
 import com.osinka.camel.beanstalk.Headers;
+import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.NoSuchHeaderException;
@@ -33,7 +34,7 @@ public class PutProcessor extends DefaultProcessor {
     }
 
     @Override
-    public void process(Exchange exchange) throws NoSuchHeaderException {
+    public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException {
         clientNotNull(exchange);
 
         final Message in = exchange.getIn();

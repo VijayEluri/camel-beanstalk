@@ -71,23 +71,39 @@ public class BeanstalkConsumer extends PollingConsumerSupport {
         return reserve( Integer.valueOf((int)timeout) );
     }
 
+    private void initClient() {
+        client = getEndpoint().getConnection().newReadingClient(useBlockIO);
+    }
+
+    private void closeClient() {
+        if (client != null)
+            client.close();
+    }
+
     Exchange reserve(final Integer timeout) {
         if (client == null)
             throw new RuntimeCamelException("Beanstalk client not initialized");
 
-        final Job job = client.reserve(timeout);
-        if (job == null)
+        try {
+            final Job job = client.reserve(timeout);
+            if (job == null)
+                return null;
+
+            if (LOG.isDebugEnabled())
+                LOG.debug(String.format("Received job ID %d (data length %d)", job.getJobId(), job.getData().length));
+
+            final Exchange exchange = getEndpoint().createExchange(ExchangePattern.InOnly);
+            exchange.setProperty(Headers.JOB_ID, job.getJobId());
+            exchange.getIn().setBody(job.getData(), byte[].class);
+            exchange.addOnCompletion(sync);
+
+            return exchange;
+        } catch (BeanstalkException e) {
+            LOG.error("Beanstalk client error", e);
+            closeClient();
+            initClient();
             return null;
-
-        if (LOG.isDebugEnabled())
-            LOG.debug(String.format("Received job ID %d (data length %d)", job.getJobId(), job.getData().length));
-
-        final Exchange exchange = getEndpoint().createExchange(ExchangePattern.InOnly);
-        exchange.setProperty(Headers.JOB_ID, job.getJobId());
-        exchange.getIn().setBody(job.getData(), byte[].class);
-        exchange.addOnCompletion(sync);
-
-        return exchange;
+        }
     }
 
     public String getOnFailure() {
@@ -113,11 +129,12 @@ public class BeanstalkConsumer extends PollingConsumerSupport {
 
     @Override
     protected void doStart() {
-        client = getEndpoint().getConnection().newReadingClient(useBlockIO);
+        initClient();
     }
 
     @Override
     protected void doStop() {
+        closeClient();
     }
 
     class ExchangeSync implements Synchronization {

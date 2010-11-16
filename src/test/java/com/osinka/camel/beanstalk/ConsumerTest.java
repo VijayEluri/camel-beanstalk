@@ -32,24 +32,47 @@ public class ConsumerTest extends BeanstalkMockTestSupport {
 
     @Test
     public void testReceive() throws Exception {
+        final Job jobMock = mock(Job.class);
         final long jobId = 111;
         final byte[] payload = Helper.stringToBytes(testMessage);
-        final Job jobMock = mock(Job.class);
 
         when(jobMock.getJobId()).thenReturn(jobId);
         when(jobMock.getData()).thenReturn(payload);
         when(client.reserve(anyInt()))
-                .thenReturn(jobMock)
-                .thenReturn(null);
+            .thenReturn(jobMock)
+            .thenReturn(null);
 
         MockEndpoint result = getMockEndpoint("mock:result");
         result.expectedMessageCount(1);
         result.expectedBodiesReceived(testMessage);
         result.expectedPropertyReceived(Headers.JOB_ID, jobId);
         result.message(0).header(Headers.JOB_ID).isEqualTo(jobId);
-        result.assertIsSatisfied(1000);
+        result.assertIsSatisfied(100);
 
         verify(client, atLeast(1)).reserve(0);
+    }
+
+    @Test
+    public void testBeanstalkException() throws Exception {
+        final Job jobMock = mock(Job.class);
+        final long jobId = 111;
+        final byte[] payload = Helper.stringToBytes(testMessage);
+
+        when(jobMock.getJobId()).thenReturn(jobId);
+        when(jobMock.getData()).thenReturn(payload);
+        when(client.reserve(anyInt()))
+            .thenThrow(new BeanstalkException("test"))
+            .thenReturn(jobMock);
+
+        MockEndpoint result = getMockEndpoint("mock:result");
+        result.expectedMessageCount(1);
+        result.expectedBodiesReceived(testMessage);
+        result.expectedPropertyReceived(Headers.JOB_ID, jobId);
+        result.message(0).header(Headers.JOB_ID).isEqualTo(jobId);
+        result.assertIsSatisfied(100);
+        
+        verify(client, atLeast(1)).reserve(anyInt());
+        verify(client, times(1)).close();
     }
 
     @Override

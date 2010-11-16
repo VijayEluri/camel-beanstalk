@@ -18,6 +18,7 @@ package com.osinka.camel.beanstalk.processors;
 
 import com.osinka.camel.beanstalk.BeanstalkEndpoint;
 import com.osinka.camel.beanstalk.Headers;
+import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Exchange;
 import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.util.ExchangeHelper;
@@ -32,7 +33,7 @@ public class TouchProcessor extends DefaultProcessor {
     }
 
     @Override
-    public void process(Exchange exchange) throws NoSuchHeaderException {
+    public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException {
         clientNotNull(exchange);
 
         final Long jobId = ExchangeHelper.getMandatoryHeader(exchange, Headers.JOB_ID, Long.class);

@@ -62,6 +62,7 @@ public class BeanstalkProducer extends DefaultProducer implements AsyncProcessor
 
     @Override
     protected void doStop() {
+        processor.close();
         executorService.shutdown();
     }
 
