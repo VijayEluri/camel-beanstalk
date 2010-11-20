@@ -16,75 +16,51 @@
 
 package com.osinka.camel.beanstalk;
 
-import java.util.concurrent.Future;
-import java.util.concurrent.ExecutorService;
-import org.apache.camel.AsyncCallback;
+import com.osinka.camel.beanstalk.processors.Command;
+import com.surftools.BeanstalkClient.BeanstalkException;
+import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Exchange;
-import org.apache.camel.AsyncProcessor;
 import org.apache.camel.impl.DefaultProducer;
-import com.osinka.camel.beanstalk.processors.CommandProcessor;
 
 /**
  *
  * @author <a href="mailto:azarov@osinka.com">Alexander Azarov</a>
  */
-public class BeanstalkProducer extends DefaultProducer implements AsyncProcessor {
-    private ExecutorService executorService;
-    final CommandProcessor processor;
+public class BeanstalkProducer extends DefaultProducer {
+    Client client = null;
+    final Command command;
 
-    public BeanstalkProducer(BeanstalkEndpoint endpoint, final CommandProcessor processor) throws Exception {
+    public BeanstalkProducer(BeanstalkEndpoint endpoint, final Command command) throws Exception {
         super(endpoint);
-        this.processor = processor;
+        this.command = command;
     }
 
     @Override
     public void process(final Exchange exchange) throws Exception {
-        processor.process(exchange);
-    }
-
-    @Override
-    public boolean process(final Exchange exchange, final AsyncCallback callback) {
         try {
-            executorService.submit(new ProcessExchangeTask(exchange, callback));
-        } catch (Throwable t) {
-            exchange.setException(t);
-            callback.done(true);
-            return true;
+            command.act(client, exchange);
+        } catch (BeanstalkException e) {
+            stop();
+            start();
+            command.act(client, exchange);
         }
-        return false;
     }
 
     @Override
-    protected void doStart() {
-        executorService = getEndpoint().getCamelContext().getExecutorServiceStrategy().newSingleThreadExecutor(this, "Beanstalk");
-        processor.init();
+    protected void doStart() throws Exception {
+        super.doStart();
+        this.client = getEndpoint().getConnection().newWritingClient();
     }
 
     @Override
-    protected void doStop() {
-        processor.close();
-        executorService.shutdown();
+    protected void doStop() throws Exception {
+        if (client != null)
+            client.close();
+        super.doStop();
     }
 
-    private class ProcessExchangeTask implements Runnable {
-        private final Exchange exchange;
-        private final AsyncCallback callback;
-
-        public ProcessExchangeTask(Exchange exchange, AsyncCallback callback) {
-            assert callback != null;
-            this.exchange = exchange;
-            this.callback = callback;
-        }
-
-        @Override
-            public void run() {
-            try {
-                processor.process(exchange);
-            } catch (Throwable t) {
-                exchange.setException(t);
-            } finally {
-                callback.done(false);
-            }
-        }
+    @Override
+    public BeanstalkEndpoint getEndpoint() {
+        return (BeanstalkEndpoint) super.getEndpoint();
     }
 }

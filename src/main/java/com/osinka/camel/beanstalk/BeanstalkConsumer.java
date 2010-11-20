@@ -16,18 +16,17 @@
 
 package com.osinka.camel.beanstalk;
 
-import com.osinka.camel.beanstalk.processors.*;
 import com.surftools.BeanstalkClient.BeanstalkException;
 import com.surftools.BeanstalkClient.Client;
 import com.surftools.BeanstalkClient.Job;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import org.apache.camel.Processor;
 import org.apache.camel.spi.Synchronization;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.impl.PollingConsumerSupport;
+import org.apache.camel.util.ServiceHelper;
 
 /**
  * PollingConsumer to read Beanstalk jobs.
@@ -47,10 +46,11 @@ import org.apache.camel.impl.PollingConsumerSupport;
 public class BeanstalkConsumer extends PollingConsumerSupport {
     private final transient Log LOG = LogFactory.getLog(BeanstalkConsumer.class);
 
-    final Synchronization sync = new ExchangeSync();
-    Client client = null;
     String onFailure = BeanstalkComponent.COMMAND_BURY;
     boolean useBlockIO = true;
+
+    private Client client = null;
+    private Synchronization sync = null;
 
     public BeanstalkConsumer(final BeanstalkEndpoint endpoint) {
         super(endpoint);
@@ -71,16 +71,16 @@ public class BeanstalkConsumer extends PollingConsumerSupport {
         return reserve( Integer.valueOf((int)timeout) );
     }
 
-    private void initClient() {
+    protected void initClient() {
         client = getEndpoint().getConnection().newReadingClient(useBlockIO);
     }
 
-    private void closeClient() {
+    protected void closeClient() {
         if (client != null)
             client.close();
     }
 
-    Exchange reserve(final Integer timeout) {
+    protected Exchange reserve(final Integer timeout) {
         if (client == null)
             throw new RuntimeCamelException("Beanstalk client not initialized");
 
@@ -128,47 +128,15 @@ public class BeanstalkConsumer extends PollingConsumerSupport {
     }
 
     @Override
-    protected void doStart() {
+    protected void doStart() throws Exception {
+        sync = new BeanstalkSync(getEndpoint(), onFailure);
         initClient();
+        ServiceHelper.startService(sync);
     }
 
     @Override
-    protected void doStop() {
+    protected void doStop() throws Exception {
+        ServiceHelper.stopService(sync);
         closeClient();
-    }
-
-    class ExchangeSync implements Synchronization {
-        @Override
-        public void onComplete(final Exchange exchange) {
-            final Processor processor = new DeleteProcessor(getEndpoint(), client);
-            try {
-                processor.process(exchange);
-            } catch (final Exception e) {
-                if (LOG.isFatalEnabled())
-                    LOG.fatal(String.format("%s failed to onComplete %s", getEndpoint().getConnection(), exchange), e);
-                exchange.setException(e);
-            }
-        }
-
-        @Override
-        public void onFailure(final Exchange exchange) {
-            Processor processor = null;
-            if (BeanstalkComponent.COMMAND_BURY.equals(onFailure))
-                processor = new BuryProcessor(getEndpoint(), client);
-            else if (BeanstalkComponent.COMMAND_RELEASE.equals(onFailure))
-                processor = new ReleaseProcessor(getEndpoint(), client);
-            else if (BeanstalkComponent.COMMAND_DELETE.equals(onFailure))
-                processor = new DeleteProcessor(getEndpoint(), client);
-            else
-                return;
-
-            try {
-                processor.process(exchange);
-            } catch (final Exception e) {
-                if (LOG.isFatalEnabled())
-                    LOG.fatal(String.format("%s failed to onComplete %s", getEndpoint().getConnection(), exchange), e);
-                exchange.setException(e);
-            }
-        }
     }
 }

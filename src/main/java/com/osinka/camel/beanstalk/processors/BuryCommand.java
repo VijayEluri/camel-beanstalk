@@ -25,21 +25,15 @@ import org.apache.camel.NoSuchHeaderException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class BuryProcessor extends DefaultProcessor {
-    private final transient Log LOG = LogFactory.getLog(BuryProcessor.class);
+public class BuryCommand extends DefaultCommand {
+    private final transient Log LOG = LogFactory.getLog(BuryCommand.class);
 
-    public BuryProcessor(BeanstalkEndpoint endpoint) {
+    public BuryCommand(BeanstalkEndpoint endpoint) {
         super(endpoint);
-    }
-
-    public BuryProcessor(BeanstalkEndpoint endpoint, Client client) {
-        super(endpoint, client);
     }
 
     @Override
     public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException {
-        clientNotNull(exchange);
-        
         final Long jobId = BeanstalkExchangeHelper.getJobID(exchange);
         final long priority = BeanstalkExchangeHelper.getPriority(endpoint, exchange.getIn());
         final boolean result = client.bury(jobId.longValue(), priority);

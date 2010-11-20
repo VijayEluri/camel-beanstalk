@@ -26,33 +26,25 @@ import org.apache.camel.NoSuchHeaderException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class ReleaseProcessor extends DefaultProcessor {
-    private final transient Log LOG = LogFactory.getLog(ReleaseProcessor.class);
+public class PutCommand extends DefaultCommand {
+    private final transient Log LOG = LogFactory.getLog(PutCommand.class);
 
-    public ReleaseProcessor(BeanstalkEndpoint endpoint) {
+    public PutCommand(BeanstalkEndpoint endpoint) {
         super(endpoint);
-    }
-
-    public ReleaseProcessor(BeanstalkEndpoint endpoint, Client client) {
-        super(endpoint, client);
     }
 
     @Override
     public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException {
-        clientNotNull(exchange);
-
         final Message in = exchange.getIn();
 
-        final Long jobId = BeanstalkExchangeHelper.getJobID(exchange);
         final long priority = BeanstalkExchangeHelper.getPriority(endpoint, in);
         final int delay = BeanstalkExchangeHelper.getDelay(endpoint, in);
+        final int timeToRun = BeanstalkExchangeHelper.getTimeToRun(endpoint, in);
 
-        final boolean result = client.release(jobId.longValue(), priority, delay);
-        if (!result && LOG.isWarnEnabled())
-            LOG.warn(String.format("Failed to release job %d (priority %d, delay %d)", jobId, priority, delay));
-        else if (LOG.isDebugEnabled())
-            LOG.debug(String.format("Job %d released with priority %d, delay %d seconds. Result is %b", jobId, priority, delay, result));
+        final long jobId = client.put(priority, delay, timeToRun, in.getBody(byte[].class));
+        if (LOG.isDebugEnabled())
+            LOG.debug(String.format("Created job %d with priority %d, delay %d seconds and time to run %d", jobId, priority, delay, timeToRun));
 
-        answerWith(exchange, Headers.RESULT, result);
+        answerWith(exchange, Headers.JOB_ID, jobId);
     }
 }

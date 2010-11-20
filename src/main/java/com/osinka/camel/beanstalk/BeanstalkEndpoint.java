@@ -21,7 +21,6 @@ import java.util.HashMap;
 import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Component;
 import org.apache.camel.PollingConsumer;
-import org.apache.camel.Processor;
 import org.apache.camel.Producer;
 import org.apache.camel.ResolveEndpointFailedException;
 import com.osinka.camel.beanstalk.processors.*;
@@ -98,23 +97,23 @@ public class BeanstalkEndpoint extends DefaultPollingEndpoint {
      */
     @Override
     public Producer createProducer() throws Exception {
-        CommandProcessor processor = null;
+        Command cmd = null;
         if (BeanstalkComponent.COMMAND_PUT.equals(command))
-            processor = new PutProcessor(this);
+            cmd = new PutCommand(this);
         else if (BeanstalkComponent.COMMAND_RELEASE.equals(command))
-            processor = new ReleaseProcessor(this);
+            cmd = new ReleaseCommand(this);
         else if (BeanstalkComponent.COMMAND_BURY.equals(command))
-            processor = new BuryProcessor(this);
+            cmd = new BuryCommand(this);
         else if (BeanstalkComponent.COMMAND_TOUCH.equals(command))
-            processor = new TouchProcessor(this);
+            cmd = new TouchCommand(this);
         else if (BeanstalkComponent.COMMAND_DELETE.equals(command))
-            processor = new DeleteProcessor(this);
+            cmd = new DeleteCommand(this);
         else if (BeanstalkComponent.COMMAND_KICK.equals(command))
-            processor = new KickProcessor(this);
+            cmd = new KickCommand(this);
         else
             throw new IllegalArgumentException(String.format("Unknown command for Beanstalk endpoint: %s", command));
 
-        return new BeanstalkProducer(this, processor);
+        return new BeanstalkProducer(this, cmd);
     }
 
     @Override

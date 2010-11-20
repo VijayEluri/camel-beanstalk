@@ -17,48 +17,15 @@
 package com.osinka.camel.beanstalk.processors;
 
 import com.osinka.camel.beanstalk.BeanstalkEndpoint;
-import com.surftools.BeanstalkClient.Client;
-import com.surftools.BeanstalkClient.BeanstalkException;
-import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.util.ExchangeHelper;
 
-abstract class DefaultProcessor implements CommandProcessor {
+abstract class DefaultCommand implements Command {
     protected final BeanstalkEndpoint endpoint;
-    private Client client = null;
 
-    public DefaultProcessor(BeanstalkEndpoint endpoint) {
+    public DefaultCommand(BeanstalkEndpoint endpoint) {
         this.endpoint = endpoint;
-    }
-
-    public DefaultProcessor(BeanstalkEndpoint endpoint, Client client) {
-        this.endpoint = endpoint;
-        this.client = client;
-    }
-
-    abstract void act(final Client client, final Exchange exchange) throws Exception;
-
-    @Override
-    public void process(final Exchange exchange) throws Exception {
-        try {
-            act(client, exchange);
-        } catch (BeanstalkException e) {
-            close();
-            init();
-            act(client, exchange);
-        }
-    }
-
-    @Override
-    public void init() {
-        this.client = endpoint.getConnection().newWritingClient();
-    }
-
-    @Override
-    public void close() {
-        if (client != null)
-            client.close();
     }
 
     protected Message getAnswerMessage(final Exchange exchange) {
@@ -74,10 +41,5 @@ abstract class DefaultProcessor implements CommandProcessor {
     protected void answerWith(final Exchange exchange, final String header, final Object value) {
         final Message answer = getAnswerMessage(exchange);
         answer.setHeader(header, value);
-    }
-
-    protected void clientNotNull(Exchange exchange) throws CamelExecutionException {
-        if (client == null)
-            throw new CamelExecutionException("Beanstalk client not initialized", exchange);
     }
 }
