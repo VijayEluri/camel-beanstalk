@@ -16,17 +16,20 @@
 
 package com.osinka.camel.beanstalk;
 
+import com.osinka.camel.beanstalk.processors.*;
 import com.surftools.BeanstalkClient.BeanstalkException;
 import com.surftools.BeanstalkClient.Client;
 import com.surftools.BeanstalkClient.Job;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
+import org.apache.camel.Processor;
 import org.apache.camel.spi.Synchronization;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.camel.RuntimeCamelException;
-import org.apache.camel.impl.PollingConsumerSupport;
-import org.apache.camel.util.ServiceHelper;
+import org.apache.camel.impl.ScheduledPollConsumer;
 
 /**
  * PollingConsumer to read Beanstalk jobs.
@@ -43,66 +46,60 @@ import org.apache.camel.util.ServiceHelper;
  *
  * @author <a href="mailto:azarov@osinka.com">Alexander Azarov</a>
  */
-public class BeanstalkConsumer extends PollingConsumerSupport {
+public class BeanstalkConsumer extends ScheduledPollConsumer {
     private final transient Log LOG = LogFactory.getLog(BeanstalkConsumer.class);
 
     String onFailure = BeanstalkComponent.COMMAND_BURY;
     boolean useBlockIO = true;
 
     private Client client = null;
+    private ExecutorService executor = null;
     private Synchronization sync = null;
 
-    public BeanstalkConsumer(final BeanstalkEndpoint endpoint) {
-        super(endpoint);
-    }
+    private final Runnable initTask = new InitTask();
+    private final Callable<Exchange> pollTask = new Callable<Exchange>() {
+        final Integer NO_WAIT = Integer.valueOf(0);
+        
+        @Override
+        public Exchange call() throws Exception {
+            if (client == null)
+                throw new RuntimeCamelException("Beanstalk client not initialized");
 
-    @Override
-    public Exchange receiveNoWait() {
-        return reserve(Integer.valueOf(0));
-    }
+            try {
+                final Job job = client.reserve(NO_WAIT);
+                if (job == null)
+                    return null;
 
-    @Override
-    public Exchange receive() {
-        return reserve(null);
-    }
+                if (LOG.isDebugEnabled())
+                    LOG.debug(String.format("Received job ID %d (data length %d)", job.getJobId(), job.getData().length));
 
-    @Override
-    public Exchange receive(final long timeout) {
-        return reserve( Integer.valueOf((int)timeout) );
-    }
+                final Exchange exchange = getEndpoint().createExchange(ExchangePattern.InOnly);
+                exchange.setProperty(Headers.JOB_ID, job.getJobId());
+                exchange.getIn().setBody(job.getData(), byte[].class);
+                exchange.addOnCompletion(sync);
 
-    protected void initClient() {
-        client = getEndpoint().getConnection().newReadingClient(useBlockIO);
-    }
-
-    protected void closeClient() {
-        if (client != null)
-            client.close();
-    }
-
-    protected Exchange reserve(final Integer timeout) {
-        if (client == null)
-            throw new RuntimeCamelException("Beanstalk client not initialized");
-
-        try {
-            final Job job = client.reserve(timeout);
-            if (job == null)
+                return exchange;
+            } catch (BeanstalkException e) {
+                LOG.error("Beanstalk client error", e);
+                resetClient();
                 return null;
+            }
+        }
 
-            if (LOG.isDebugEnabled())
-                LOG.debug(String.format("Received job ID %d (data length %d)", job.getJobId(), job.getData().length));
+    };
 
-            final Exchange exchange = getEndpoint().createExchange(ExchangePattern.InOnly);
-            exchange.setProperty(Headers.JOB_ID, job.getJobId());
-            exchange.getIn().setBody(job.getData(), byte[].class);
-            exchange.addOnCompletion(sync);
+    public BeanstalkConsumer(final BeanstalkEndpoint endpoint, final Processor processor) {
+        super(endpoint, processor);
+    }
 
-            return exchange;
-        } catch (BeanstalkException e) {
-            LOG.error("Beanstalk client error", e);
-            closeClient();
-            initClient();
-            return null;
+    @Override
+    protected void poll() throws Exception {
+        while (isPollAllowed()) {
+            final Exchange exchange = executor.submit(pollTask).get();
+            if (exchange == null)
+                break;
+
+            getProcessor().process(exchange);
         }
     }
 
@@ -129,14 +126,102 @@ public class BeanstalkConsumer extends PollingConsumerSupport {
 
     @Override
     protected void doStart() throws Exception {
-        sync = new BeanstalkSync(getEndpoint(), onFailure);
-        initClient();
-        ServiceHelper.startService(sync);
+        executor = getEndpoint().getCamelContext().getExecutorServiceStrategy().newSingleThreadExecutor(this, "Beanstalk");
+        executor.execute(initTask);
+        sync = new Sync();
+        super.doStart();
     }
 
     @Override
     protected void doStop() throws Exception {
-        ServiceHelper.stopService(sync);
-        closeClient();
+        super.doStop();
+        executor.shutdown();
+    }
+
+    protected void resetClient() {
+        if (client != null)
+            client.close();
+        initTask.run();
+    }
+
+    class CloseTask implements Runnable {
+       @Override
+       public void run() {
+           if (client != null)
+               client.close();
+       }
+    }
+
+    class InitTask implements Runnable {
+        @Override
+        public void run() {
+            client = getEndpoint().getConnection().newReadingClient(useBlockIO);
+        }
+    }
+
+    class Sync implements Synchronization {
+        protected final Command successCommand;
+        protected final Command failureCommand;
+
+        public Sync() {
+            successCommand = new DeleteCommand(getEndpoint());
+
+            if (BeanstalkComponent.COMMAND_BURY.equals(onFailure))
+                failureCommand = new BuryCommand(getEndpoint());
+            else if (BeanstalkComponent.COMMAND_RELEASE.equals(onFailure))
+                failureCommand = new ReleaseCommand(getEndpoint());
+            else if (BeanstalkComponent.COMMAND_DELETE.equals(onFailure))
+                failureCommand = new DeleteCommand(getEndpoint());
+            else
+                throw new IllegalArgumentException(String.format("Unknown failure command: %s", onFailure));
+        }
+
+        @Override
+        public void onComplete(final Exchange exchange) {
+            try {
+                executor.submit(new RetryTask(successCommand, exchange)).get();
+            } catch (Exception e) {
+                if (LOG.isFatalEnabled())
+                    LOG.fatal(String.format("Could not run completion of exchange %s", exchange), e);
+            }
+        }
+
+        @Override
+        public void onFailure(final Exchange exchange) {
+            try {
+                executor.submit(new RetryTask(failureCommand, exchange)).get();
+            } catch (Exception e) {
+                if (LOG.isFatalEnabled())
+                    LOG.fatal(String.format("%s could not run failure of exchange %s", failureCommand.getClass().getName(), exchange), e);
+            }
+        }
+
+        class RetryTask implements Runnable {
+            private final Command command;
+            private final Exchange exchange;
+
+            public RetryTask(final Command command, final Exchange exchange) {
+                this.command = command;
+                this.exchange = exchange;
+            }
+
+            @Override
+            public void run() {
+                try {
+                    try {
+                        command.act(client, exchange);
+                    } catch (BeanstalkException e) {
+                        if (LOG.isWarnEnabled())
+                            LOG.warn(String.format("Post-processing %s of exchange %s failed, retrying.", command.getClass().getName(), exchange), e);
+                        resetClient();
+                        command.act(client, exchange);
+                    }
+                } catch (final Exception e) {
+                    if (LOG.isFatalEnabled())
+                        LOG.fatal(String.format("%s could not post-process exchange %s", command.getClass().getName(), exchange), e);
+                    exchange.setException(e);
+                }
+            }
+        }
     }
 }
