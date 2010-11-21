@@ -25,21 +25,15 @@ import org.apache.camel.NoSuchHeaderException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class DeleteProcessor extends DefaultProcessor {
-    private final transient Log LOG = LogFactory.getLog(DeleteProcessor.class);
+public class DeleteCommand extends DefaultCommand {
+    private final transient Log LOG = LogFactory.getLog(DeleteCommand.class);
 
-    public DeleteProcessor(BeanstalkEndpoint endpoint) {
+    public DeleteCommand(BeanstalkEndpoint endpoint) {
         super(endpoint);
-    }
-
-    public DeleteProcessor(BeanstalkEndpoint endpoint, Client client) {
-        super(endpoint, client);
     }
 
     @Override
     public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException {
-        clientNotNull(exchange);
-
         final Long jobId = BeanstalkExchangeHelper.getJobID(exchange);
         final boolean result = client.delete(jobId.longValue());
         if (!result && LOG.isWarnEnabled())

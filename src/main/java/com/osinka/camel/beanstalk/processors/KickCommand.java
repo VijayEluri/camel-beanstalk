@@ -26,17 +26,15 @@ import org.apache.camel.util.ExchangeHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class KickProcessor extends DefaultProcessor {
-    private final transient Log LOG = LogFactory.getLog(KickProcessor.class);
+public class KickCommand extends DefaultCommand {
+    private final transient Log LOG = LogFactory.getLog(KickCommand.class);
 
-    public KickProcessor(BeanstalkEndpoint endpoint) {
+    public KickCommand(BeanstalkEndpoint endpoint) {
         super(endpoint);
     }
 
     @Override
     public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException, InvalidPayloadException {
-        clientNotNull(exchange);
-
         final Integer jobs = ExchangeHelper.getMandatoryInBody(exchange, Integer.class);
         final int result = client.kick(jobs);
         if (LOG.isDebugEnabled())

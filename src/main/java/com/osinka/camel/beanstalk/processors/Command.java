@@ -16,9 +16,9 @@
 
 package com.osinka.camel.beanstalk.processors;
 
-import org.apache.camel.Processor;
+import com.surftools.BeanstalkClient.Client;
+import org.apache.camel.Exchange;
 
-public interface CommandProcessor extends Processor {
-    public void init();
-    public void close();
+public interface Command {
+    public void act(Client client, Exchange exchange) throws Exception;
 }

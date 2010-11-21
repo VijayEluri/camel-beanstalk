@@ -16,32 +16,26 @@
 
 package com.osinka.camel.beanstalk;
 
-import java.util.Map;
-import java.util.HashMap;
 import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Component;
-import org.apache.camel.PollingConsumer;
-import org.apache.camel.Processor;
 import org.apache.camel.Producer;
-import org.apache.camel.ResolveEndpointFailedException;
 import com.osinka.camel.beanstalk.processors.*;
-import org.apache.camel.impl.DefaultPollingEndpoint;
-import org.apache.camel.util.EndpointHelper;
+import org.apache.camel.Consumer;
+import org.apache.camel.Processor;
+import org.apache.camel.impl.ScheduledPollEndpoint;
 
 /**
  * @author <a href="mailto:azarov@osinka.com">Alexander Azarov</a>
  * @see BeanstalkConsumer
  * @see PutProducer
  */
-public class BeanstalkEndpoint extends DefaultPollingEndpoint {
+public class BeanstalkEndpoint extends ScheduledPollEndpoint {
     final ConnectionSettings conn;
 
     String command      = BeanstalkComponent.COMMAND_PUT;
     long priority       = BeanstalkComponent.DEFAULT_PRIORITY;
     int delay           = BeanstalkComponent.DEFAULT_DELAY;
     int timeToRun       = BeanstalkComponent.DEFAULT_TIME_TO_RUN;
-
-    private Map<String, Object> pollingConsumerProperties = new HashMap<String,Object>();
 
     BeanstalkEndpoint(final String uri, final Component component, final ConnectionSettings conn) {
         super(uri, component);
@@ -98,55 +92,32 @@ public class BeanstalkEndpoint extends DefaultPollingEndpoint {
      */
     @Override
     public Producer createProducer() throws Exception {
-        CommandProcessor processor = null;
+        Command cmd = null;
         if (BeanstalkComponent.COMMAND_PUT.equals(command))
-            processor = new PutProcessor(this);
+            cmd = new PutCommand(this);
         else if (BeanstalkComponent.COMMAND_RELEASE.equals(command))
-            processor = new ReleaseProcessor(this);
+            cmd = new ReleaseCommand(this);
         else if (BeanstalkComponent.COMMAND_BURY.equals(command))
-            processor = new BuryProcessor(this);
+            cmd = new BuryCommand(this);
         else if (BeanstalkComponent.COMMAND_TOUCH.equals(command))
-            processor = new TouchProcessor(this);
+            cmd = new TouchCommand(this);
         else if (BeanstalkComponent.COMMAND_DELETE.equals(command))
-            processor = new DeleteProcessor(this);
+            cmd = new DeleteCommand(this);
         else if (BeanstalkComponent.COMMAND_KICK.equals(command))
-            processor = new KickProcessor(this);
+            cmd = new KickCommand(this);
         else
             throw new IllegalArgumentException(String.format("Unknown command for Beanstalk endpoint: %s", command));
 
-        return new BeanstalkProducer(this, processor);
+        return new BeanstalkProducer(this, cmd);
     }
 
     @Override
-    public PollingConsumer createPollingConsumer() throws Exception {
-        BeanstalkConsumer consumer = new BeanstalkConsumer(this);
-        configurePollingConsumer(consumer);
+    public Consumer createConsumer(Processor processor) throws Exception {
+        BeanstalkConsumer consumer = new BeanstalkConsumer(this, processor);
+        configureConsumer(consumer);
         return consumer;
     }
 
-    @Override 
-    public void setConsumerProperties(Map<String, Object> consumerProperties) {
-        super.setConsumerProperties(consumerProperties);
-        setPollingConsumerProperties(consumerProperties);
-    }
-
-    public void setPollingConsumerProperties(Map<String, Object> consumerProperties) {
-        pollingConsumerProperties.putAll(consumerProperties);
-        consumerProperties.clear();
-    }
-
-    protected void configurePollingConsumer(BeanstalkConsumer consumer) throws Exception {
-        if (!pollingConsumerProperties.isEmpty()) {
-            EndpointHelper.setProperties(getCamelContext(), consumer, pollingConsumerProperties);
-            if (pollingConsumerProperties.size() > 0) {
-                throw new ResolveEndpointFailedException(this.getEndpointUri(), "There are " + pollingConsumerProperties.size()
-                    + " parameters that couldn't be set on the endpoint consumer."
-                    + " Check the uri if the parameters are spelt correctly and that they are properties of the endpoint."
-                    + " Unknown consumer parameters=[" + pollingConsumerProperties + "]");
-            }
-        }
-    }
-    
     @Override
     public boolean isSingleton() {
         return true;

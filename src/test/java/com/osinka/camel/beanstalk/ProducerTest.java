@@ -58,7 +58,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         final Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(PutProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(PutCommand.class));
 
         final Exchange exchange = template.send(endpoint, ExchangePattern.InOnly, new Processor() { // TODO: SetBodyProcessor(?)
             public void process(Exchange exchange) {
@@ -83,7 +83,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(PutProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(PutCommand.class));
 
         final Exchange exchange = template.send(endpoint, ExchangePattern.InOut, new Processor() { // TODO: SetBodyProcessor(?)
             public void process(Exchange exchange) {
@@ -108,7 +108,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(PutProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(PutCommand.class));
 
         final Exchange exchange = template.send(endpoint, ExchangePattern.InOnly, new Processor() { // TODO: SetBodyProcessor(?)
             public void process(Exchange exchange) {
@@ -132,7 +132,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(BuryProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(BuryCommand.class));
 
         when(client.bury(jobId, priority)).thenReturn(true);
 
@@ -153,7 +153,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(BuryProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(BuryCommand.class));
 
         template.send(endpoint, ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) {}
@@ -171,7 +171,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(BuryProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(BuryCommand.class));
 
         when(client.bury(jobId, priority)).thenReturn(true);
 
@@ -195,7 +195,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(DeleteProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(DeleteCommand.class));
 
         when(client.delete(jobId)).thenReturn(true);
 
@@ -216,7 +216,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(DeleteProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(DeleteCommand.class));
 
         template.send(endpoint, ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) {}
@@ -235,7 +235,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(ReleaseProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(ReleaseCommand.class));
 
         when(client.release(jobId, priority, delay)).thenReturn(true);
 
@@ -256,7 +256,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(ReleaseProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(ReleaseCommand.class));
 
         template.send(endpoint, ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) {}
@@ -275,7 +275,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(ReleaseProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(ReleaseCommand.class));
 
         when(client.release(jobId, priority, delay)).thenReturn(true);
 
@@ -300,7 +300,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(TouchProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(TouchCommand.class));
 
         when(client.touch(jobId)).thenReturn(true);
 
@@ -321,7 +321,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         Producer producer = endpoint.createProducer();
         assertNotNull("Producer", producer);
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
-        assertThat("Processor class", ((BeanstalkProducer)producer).processor, instanceOf(TouchProcessor.class));
+        assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(TouchCommand.class));
 
         template.send(endpoint, ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) {}
