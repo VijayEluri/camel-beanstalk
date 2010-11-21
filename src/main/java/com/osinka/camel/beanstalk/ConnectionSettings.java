@@ -81,7 +81,11 @@ public class ConnectionSettings {
         final String tube = tubes.length > 0 ? tubes[0] : BeanstalkComponent.DEFAULT_TUBE;
 
         final ClientImpl client = new ClientImpl(host, port);
-        client.setUniqueConnectionPerThread(false);
+
+        /* FIXME: There is a problem in JavaBeanstalkClient 1.4.4 (at least in 1.4.4),
+           likely with IO, when the library fails to follow the protocol on slow
+           connections, i.e. it reads incomplete messages. */
+        //client.setUniqueConnectionPerThread(false);
         client.useTube(tube);
         return client;
     }
@@ -97,7 +101,11 @@ public class ConnectionSettings {
      */
     public Client newReadingClient(boolean useBlockIO) {
         final ClientImpl client = new ClientImpl(host, port, useBlockIO);
-        client.setUniqueConnectionPerThread(false);
+
+        /* FIXME: There is a problem in JavaBeanstalkClient 1.4.4 (at least in 1.4.4),
+           likely with IO, when the library fails to follow the protocol on slow
+           connections, i.e. it reads incomplete messages. */
+        //client.setUniqueConnectionPerThread(false);
         for (String tube : tubes)
             client.watch(tube);
         return client;

@@ -56,7 +56,12 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
     private ExecutorService executor = null;
     private Synchronization sync = null;
 
-    private final Runnable initTask = new InitTask();
+    private final Runnable initTask = new Runnable() {
+            @Override
+            public void run() {
+                client = getEndpoint().getConnection().newReadingClient(useBlockIO);
+            }
+        };
     private final Callable<Exchange> pollTask = new Callable<Exchange>() {
         final Integer NO_WAIT = Integer.valueOf(0);
         
@@ -144,21 +149,6 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
         initTask.run();
     }
 
-    class CloseTask implements Runnable {
-       @Override
-       public void run() {
-           if (client != null)
-               client.close();
-       }
-    }
-
-    class InitTask implements Runnable {
-        @Override
-        public void run() {
-            client = getEndpoint().getConnection().newReadingClient(useBlockIO);
-        }
-    }
-
     class Sync implements Synchronization {
         protected final Command successCommand;
         protected final Command failureCommand;
@@ -179,7 +169,7 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
         @Override
         public void onComplete(final Exchange exchange) {
             try {
-                executor.submit(new RetryTask(successCommand, exchange)).get();
+                executor.submit(new RunCommand(successCommand, exchange)).get();
             } catch (Exception e) {
                 if (LOG.isFatalEnabled())
                     LOG.fatal(String.format("Could not run completion of exchange %s", exchange), e);
@@ -189,18 +179,18 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
         @Override
         public void onFailure(final Exchange exchange) {
             try {
-                executor.submit(new RetryTask(failureCommand, exchange)).get();
+                executor.submit(new RunCommand(failureCommand, exchange)).get();
             } catch (Exception e) {
                 if (LOG.isFatalEnabled())
                     LOG.fatal(String.format("%s could not run failure of exchange %s", failureCommand.getClass().getName(), exchange), e);
             }
         }
 
-        class RetryTask implements Runnable {
+        class RunCommand implements Runnable {
             private final Command command;
             private final Exchange exchange;
 
-            public RetryTask(final Command command, final Exchange exchange) {
+            public RunCommand(final Command command, final Exchange exchange) {
                 this.command = command;
                 this.exchange = exchange;
             }
