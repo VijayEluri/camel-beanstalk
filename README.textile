@@ -91,10 +91,16 @@ Note, beanstalkd daemon must be running for the tests to pass.
 
 h3. Building
 
-Run install for "camel-beanstalk" to build the artifact and install it into the local Maven repository:
+Download "camel-beanstalk" project:
 
-bc. cd camel-beanstalk
-mvn install
+bc. git clone git://github.com/osinka/camel-beanstalk.git
+cd camel-beanstalk
+
+Run @release:perform@ with the latest version tag (@v1.1.5@ is shown below as example):
+
+bc. mvn3 release:perform -Dtag=v1.1.5
+
+This will install all the project binaries (jar, sources and javadoc) into your local Maven repository.
 
 h2. License
 
