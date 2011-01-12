@@ -167,7 +167,7 @@
         <configuration>
           <preparationGoals>clean</preparationGoals>
           <releaseProfiles>release</releaseProfiles>
-          <goals>install deploy</goals>
+          <goals>install</goals>
         </configuration>
       </plugin>
     </plugins>
