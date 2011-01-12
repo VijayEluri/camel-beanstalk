@@ -98,7 +98,7 @@ cd camel-beanstalk
 
 Run @release:perform@ with the latest version tag (@v1.1.5@ is shown below as example):
 
-bc. mvn3 release:perform -Dtag=v1.1.5
+bc. mvn release:perform -Dtag=v1.1.5
 
 This will install all the project binaries (jar, sources and javadoc) into your local Maven repository.
 
