@@ -166,7 +166,6 @@
         </dependencies>
         <configuration>
           <connectionUrl>scm:git:git://github.com/osinka/camel-beanstalk.git</connectionUrl>
-          <preparationGoals>clean</preparationGoals>
           <releaseProfiles>release</releaseProfiles>
           <goals>install</goals>
         </configuration>
