@@ -98,14 +98,17 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
     }
 
     @Override
-    protected void poll() throws Exception {
+    protected int poll() throws Exception {
+        int messagesPolled = 0;
         while (isPollAllowed()) {
             final Exchange exchange = executor.submit(pollTask).get();
             if (exchange == null)
                 break;
 
+            ++messagesPolled;
             getProcessor().process(exchange);
         }
+        return messagesPolled;
     }
 
     public String getOnFailure() {
