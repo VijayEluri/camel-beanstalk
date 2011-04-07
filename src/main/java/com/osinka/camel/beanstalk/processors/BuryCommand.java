@@ -22,11 +22,11 @@ import com.osinka.camel.beanstalk.Headers;
 import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Exchange;
 import org.apache.camel.NoSuchHeaderException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BuryCommand extends DefaultCommand {
-    private final transient Log LOG = LogFactory.getLog(BuryCommand.class);
+    private final transient Logger log = LoggerFactory.getLogger(getClass());
 
     public BuryCommand(BeanstalkEndpoint endpoint) {
         super(endpoint);
@@ -38,10 +38,10 @@ public class BuryCommand extends DefaultCommand {
         final long priority = BeanstalkExchangeHelper.getPriority(endpoint, exchange.getIn());
         final boolean result = client.bury(jobId.longValue(), priority);
 
-        if (!result && LOG.isWarnEnabled())
-            LOG.warn(String.format("Failed to bury job %d (with priority %d)", jobId, priority));
-        else if (LOG.isDebugEnabled())
-            LOG.debug(String.format("Job %d buried with priority %d. Result is %b", jobId, priority, result));
+        if (!result && log.isWarnEnabled())
+            log.warn(String.format("Failed to bury job %d (with priority %d)", jobId, priority));
+        else if (log.isDebugEnabled())
+            log.debug(String.format("Job %d buried with priority %d. Result is %b", jobId, priority, result));
 
         answerWith(exchange, Headers.RESULT, result);
 

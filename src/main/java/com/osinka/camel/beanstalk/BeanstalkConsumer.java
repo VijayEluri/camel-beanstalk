@@ -26,10 +26,10 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.spi.Synchronization;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.impl.ScheduledPollConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * PollingConsumer to read Beanstalk jobs.
@@ -47,7 +47,7 @@ import org.apache.camel.impl.ScheduledPollConsumer;
  * @author <a href="mailto:azarov@osinka.com">Alexander Azarov</a>
  */
 public class BeanstalkConsumer extends ScheduledPollConsumer {
-    private final transient Log LOG = LogFactory.getLog(BeanstalkConsumer.class);
+    private final transient Logger log = LoggerFactory.getLogger(getClass());
 
     String onFailure = BeanstalkComponent.COMMAND_BURY;
     boolean useBlockIO = true;
@@ -75,8 +75,8 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
                 if (job == null)
                     return null;
 
-                if (LOG.isDebugEnabled())
-                    LOG.debug(String.format("Received job ID %d (data length %d)", job.getJobId(), job.getData().length));
+                if (log.isDebugEnabled())
+                    log.debug(String.format("Received job ID %d (data length %d)", job.getJobId(), job.getData().length));
 
                 final Exchange exchange = getEndpoint().createExchange(ExchangePattern.InOnly);
                 exchange.setProperty(Headers.JOB_ID, job.getJobId());
@@ -85,7 +85,7 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
 
                 return exchange;
             } catch (BeanstalkException e) {
-                LOG.error("Beanstalk client error", e);
+                log.error("Beanstalk client error", e);
                 resetClient();
                 return null;
             }
@@ -174,8 +174,8 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
             try {
                 executor.submit(new RunCommand(successCommand, exchange)).get();
             } catch (Exception e) {
-                if (LOG.isFatalEnabled())
-                    LOG.fatal(String.format("Could not run completion of exchange %s", exchange), e);
+                if (log.isErrorEnabled())
+                    log.error(String.format("Could not run completion of exchange %s", exchange), e);
             }
         }
 
@@ -184,8 +184,8 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
             try {
                 executor.submit(new RunCommand(failureCommand, exchange)).get();
             } catch (Exception e) {
-                if (LOG.isFatalEnabled())
-                    LOG.fatal(String.format("%s could not run failure of exchange %s", failureCommand.getClass().getName(), exchange), e);
+                if (log.isErrorEnabled())
+                    log.error(String.format("%s could not run failure of exchange %s", failureCommand.getClass().getName(), exchange), e);
             }
         }
 
@@ -204,14 +204,14 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
                     try {
                         command.act(client, exchange);
                     } catch (BeanstalkException e) {
-                        if (LOG.isWarnEnabled())
-                            LOG.warn(String.format("Post-processing %s of exchange %s failed, retrying.", command.getClass().getName(), exchange), e);
+                        if (log.isWarnEnabled())
+                            log.warn(String.format("Post-processing %s of exchange %s failed, retrying.", command.getClass().getName(), exchange), e);
                         resetClient();
                         command.act(client, exchange);
                     }
                 } catch (final Exception e) {
-                    if (LOG.isFatalEnabled())
-                        LOG.fatal(String.format("%s could not post-process exchange %s", command.getClass().getName(), exchange), e);
+                    if (log.isErrorEnabled())
+                        log.error(String.format("%s could not post-process exchange %s", command.getClass().getName(), exchange), e);
                     exchange.setException(e);
                 }
             }

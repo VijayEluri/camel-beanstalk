@@ -23,11 +23,11 @@ import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.NoSuchHeaderException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PutCommand extends DefaultCommand {
-    private final transient Log LOG = LogFactory.getLog(PutCommand.class);
+    private final transient Logger log = LoggerFactory.getLogger(getClass());
 
     public PutCommand(BeanstalkEndpoint endpoint) {
         super(endpoint);
@@ -42,8 +42,8 @@ public class PutCommand extends DefaultCommand {
         final int timeToRun = BeanstalkExchangeHelper.getTimeToRun(endpoint, in);
 
         final long jobId = client.put(priority, delay, timeToRun, in.getBody(byte[].class));
-        if (LOG.isDebugEnabled())
-            LOG.debug(String.format("Created job %d with priority %d, delay %d seconds and time to run %d", jobId, priority, delay, timeToRun));
+        if (log.isDebugEnabled())
+            log.debug(String.format("Created job %d with priority %d, delay %d seconds and time to run %d", jobId, priority, delay, timeToRun));
 
         answerWith(exchange, Headers.JOB_ID, jobId);
     }

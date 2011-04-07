@@ -22,11 +22,11 @@ import com.surftools.BeanstalkClient.Client;
 import org.apache.camel.Exchange;
 import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.util.ExchangeHelper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TouchCommand extends DefaultCommand {
-    private final transient Log LOG = LogFactory.getLog(TouchCommand.class);
+    private final transient Logger log = LoggerFactory.getLogger(getClass());
 
     public TouchCommand(BeanstalkEndpoint endpoint) {
         super(endpoint);
@@ -36,10 +36,10 @@ public class TouchCommand extends DefaultCommand {
     public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException {
         final Long jobId = ExchangeHelper.getMandatoryHeader(exchange, Headers.JOB_ID, Long.class);
         final boolean result = client.touch(jobId.longValue());
-        if (!result && LOG.isWarnEnabled())
-            LOG.warn(String.format("Failed to touch job %d", jobId));
-        else if (LOG.isDebugEnabled())
-            LOG.debug(String.format("Job %d touched. Result is %b", jobId, result));
+        if (!result && log.isWarnEnabled())
+            log.warn(String.format("Failed to touch job %d", jobId));
+        else if (log.isDebugEnabled())
+            log.debug(String.format("Job %d touched. Result is %b", jobId, result));
 
         answerWith(exchange, Headers.RESULT, result);
     }
