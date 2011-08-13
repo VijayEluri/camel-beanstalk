@@ -142,7 +142,8 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
     @Override
     protected void doStop() throws Exception {
         super.doStop();
-        executor.shutdown();
+        if (executor != null)
+          executor.shutdown();
     }
 
     protected void resetClient() {
