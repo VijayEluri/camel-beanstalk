@@ -83,8 +83,8 @@ The consumer stores a number of job properties in the @Exchange@:
 |_beanstalk.time-left_|int|the number of seconds left until the server puts this job into the ready queue|
 |_beanstalk.timeouts_|int|the number of times this job has timed out during a reservation|
 |_beanstalk.releases_|int|the number of times a client has released this job from a reservation|
-|_beanstalk.buries|int|the number of times this job has been buried|
-|_beanstalk.kicks|int|the number of times this job has been kicked|
+|_beanstalk.buries_|int|the number of times this job has been buried|
+|_beanstalk.kicks_|int|the number of times this job has been kicked|
 
 h2. Using
 
