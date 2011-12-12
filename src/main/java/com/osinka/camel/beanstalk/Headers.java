@@ -20,14 +20,26 @@ package com.osinka.camel.beanstalk;
  * @author <a href="mailto:azarov@osinka.com">Alexander Azarov</a>
  */
 public final class Headers {
+    public static final String PREFIX       = "beanstalk.";
+
     // in
-    public static final String PRIORITY     = "beanstalk.priority";
-    public static final String DELAY        = "beanstalk.delay";
-    public static final String TIME_TO_RUN  = "beanstalk.timeToRun";
+    public static final String PRIORITY     = PREFIX+"priority";
+    public static final String DELAY        = PREFIX+"delay";
+    public static final String TIME_TO_RUN  = PREFIX+"timeToRun";
 
     // in/out
-    public static final String JOB_ID       = "beanstalk.jobId";
+    public static final String JOB_ID       = PREFIX+"jobId";
 
     // out
-    public static final String RESULT       = "beanstalk.result";
+    public static final String RESULT       = PREFIX+"result";
+
+    // other info
+    public static final String TUBE         = PREFIX+"tube";
+    public static final String STATE        = PREFIX+"state";
+    public static final String AGE          = PREFIX+"age";
+    public static final String TIME_LEFT    = PREFIX+"time-left";
+    public static final String TIMEOUTS     = PREFIX+"timeouts";
+    public static final String RELEASES     = PREFIX+"releases";
+    public static final String BURIES       = PREFIX+"buries";
+    public static final String KICKS        = PREFIX+"kicks";
 }

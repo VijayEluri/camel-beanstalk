@@ -72,7 +72,19 @@ There is a boolean parameter @consumer.useBlockIO@ which corresponds to the same
 
 Be careful when specifying @release@, as the failed job will immediately become available in the same tube and your consumer will try to acquire it again. You can @release@ and specify _jobDelay_ though.
 
-The consumer stores Job ID in the exchange's property _beanstalk.jobId_.
+The consumer stores a number of job properties in the @Exchange@:
+
+|_. Property|_. Unit|_. Description|
+|_beanstalk.jobId_|long|Job ID|
+|_beanstalk.tube_|string|the name of the tube that contains this job|
+|_beanstalk.state_|string|"ready" or "delayed" or "reserved" or "buried" (must be "reserved")|
+|_beanstalk.priority_|long|the priority value set|
+|_beanstalk.age_|int|the time in seconds since the put command that created this job|
+|_beanstalk.time-left_|int|the number of seconds left until the server puts this job into the ready queue|
+|_beanstalk.timeouts_|int|the number of times this job has timed out during a reservation|
+|_beanstalk.releases_|int|the number of times a client has released this job from a reservation|
+|_beanstalk.buries|int|the number of times this job has been buried|
+|_beanstalk.kicks|int|the number of times this job has been kicked|
 
 h2. Using
 

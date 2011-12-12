@@ -19,6 +19,7 @@ import com.osinka.camel.beanstalk.processors.*;
 import com.surftools.BeanstalkClient.BeanstalkException;
 import com.surftools.BeanstalkClient.Client;
 import com.surftools.BeanstalkClient.Job;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import org.apache.camel.Exchange;
@@ -55,6 +56,9 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
     private ExecutorService executor = null;
     private Synchronization sync = null;
 
+    private static String[] statsKeysStr = new String[] {"tube", "state"};
+    private static String[] statsKeysInt = new String[] {"age", "time-left", "timeouts", "releases", "buries", "kicks"};
+
     private final Runnable initTask = new Runnable() {
             @Override
             public void run() {
@@ -80,6 +84,23 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
                 final Exchange exchange = getEndpoint().createExchange(ExchangePattern.InOnly);
                 exchange.setProperty(Headers.JOB_ID, job.getJobId());
                 exchange.getIn().setBody(job.getData(), byte[].class);
+
+                Map<String,String> jobStats = client.statsJob(job.getJobId());
+                if (jobStats != null) {
+                    for (String key : statsKeysStr) {
+                      if (jobStats.containsKey(key))
+                          exchange.setProperty(Headers.PREFIX+key, jobStats.get(key));
+                    }
+
+                    if (jobStats.containsKey("pri"))
+                        exchange.setProperty(Headers.PRIORITY, Long.parseLong(jobStats.get("pri")));
+
+                    for (String key : statsKeysInt) {
+                      if (jobStats.containsKey(key))
+                          exchange.setProperty(Headers.PREFIX+key, Integer.parseInt(jobStats.get(key)));
+                    }
+                }
+
                 exchange.addOnCompletion(sync);
 
                 return exchange;
