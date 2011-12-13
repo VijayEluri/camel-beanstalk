@@ -89,15 +89,15 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
                 if (jobStats != null) {
                     for (String key : statsKeysStr) {
                       if (jobStats.containsKey(key))
-                          exchange.setProperty(Headers.PREFIX+key, jobStats.get(key));
+                          exchange.setProperty(Headers.PREFIX+key, jobStats.get(key).trim());
                     }
 
                     if (jobStats.containsKey("pri"))
-                        exchange.setProperty(Headers.PRIORITY, Long.parseLong(jobStats.get("pri")));
+                        exchange.setProperty(Headers.PRIORITY, Long.parseLong(jobStats.get("pri").trim()));
 
                     for (String key : statsKeysInt) {
                       if (jobStats.containsKey(key))
-                          exchange.setProperty(Headers.PREFIX+key, Integer.parseInt(jobStats.get(key)));
+                          exchange.setProperty(Headers.PREFIX+key, Integer.parseInt(jobStats.get(key).trim()));
                     }
                 }
 
