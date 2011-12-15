@@ -66,7 +66,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>1.6.1</version>
+      <version>1.6.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -98,7 +98,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.7</version>
+        <version>2.8</version>
         <configuration>
           <links>
             <link>http://camel.apache.org/maven/camel-2.2.0/camel-core/apidocs/</link>
