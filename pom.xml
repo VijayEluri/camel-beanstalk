@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.osinka.camel</groupId>
   <artifactId>camel-beanstalk</artifactId>
-  <version>1.4.1-SNAPSHOT</version> <!-- http://semver.org/ -->
+  <version>1.5.0-SNAPSHOT</version> <!-- http://semver.org/ -->
   <packaging>bundle</packaging>
   <name>Apache Camel component for Beanstalk</name>
   <inceptionYear>2010</inceptionYear>
@@ -41,7 +41,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <camel.version>2.9.0</camel.version>
+    <camel.version>2.9.1</camel.version>
     <jdk.version>1.6</jdk.version>
     <java.src.version>1.5</java.src.version>
   </properties>
@@ -78,7 +78,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>1.8.5</version>
+      <version>1.9.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
