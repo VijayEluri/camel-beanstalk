@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.osinka.camel</groupId>
   <artifactId>camel-beanstalk</artifactId>
-  <version>1.4.2-SNAPSHOT</version> <!-- http://semver.org/ -->
+  <version>1.5.0-SNAPSHOT</version> <!-- http://semver.org/ -->
   <packaging>bundle</packaging>
   <name>Apache Camel component for Beanstalk</name>
   <inceptionYear>2010</inceptionYear>
@@ -41,7 +41,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <camel.version>2.8.4</camel.version>
+    <camel.version>2.9.1</camel.version>
     <jdk.version>1.6</jdk.version>
     <java.src.version>1.5</java.src.version>
   </properties>
@@ -238,7 +238,7 @@
             <version>2.8</version>
             <configuration>
               <links>
-                <link>http://camel.apache.org/maven/camel-2.2.0/camel-core/apidocs/</link>
+                <link>http://camel.apache.org/maven/current/camel-core/apidocs/</link>
               </links>
             </configuration>
             <executions>

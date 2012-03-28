@@ -23,6 +23,7 @@ import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 public class EndpointTest {
     CamelContext context = null;
@@ -63,6 +64,7 @@ public class EndpointTest {
     }
 
     @Test
+    @Ignore("Apache Camel bug CAMEL-4857")
     public void testTubes() {
         BeanstalkEndpoint endpoint = context.getEndpoint("beanstalk:host:11303/tube1+tube%2B+tube%3F?command=kick", BeanstalkEndpoint.class);
         assertNotNull("Beanstalk endpoint", endpoint);
