@@ -5,8 +5,13 @@
   <artifactId>camel-beanstalk</artifactId>
   <version>1.5.1-SNAPSHOT</version> <!-- http://semver.org/ -->
   <packaging>bundle</packaging>
-  <name>Apache Camel component for Beanstalk</name>
+  <name>camel-beanstalk</name>
   <inceptionYear>2010</inceptionYear>
+  <url>https://github.com/osinka/camel-beanstalk</url>
+
+  <description>
+    Apache Camel component for Beanstalk
+  </description>
 
   <organization>
     <name>Osinka.com</name>
