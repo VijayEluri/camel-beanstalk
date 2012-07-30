@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.osinka.camel</groupId>
   <artifactId>camel-beanstalk</artifactId>
-  <version>1.5.2-SNAPSHOT</version> <!-- http://semver.org/ -->
+  <version>1.5.1-SNAPSHOT</version> <!-- http://semver.org/ -->
   <packaging>bundle</packaging>
   <name>Apache Camel component for Beanstalk</name>
   <inceptionYear>2010</inceptionYear>
@@ -266,5 +266,12 @@
       </build>
     </profile>
   </profiles>
-</project>
 
+  <distributionManagement>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+</project>
