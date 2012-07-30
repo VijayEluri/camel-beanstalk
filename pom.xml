@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.osinka.camel</groupId>
   <artifactId>camel-beanstalk</artifactId>
-  <version>1.5.2-SNAPSHOT</version> <!-- http://semver.org/ -->
+  <version>1.5.1-SNAPSHOT</version> <!-- http://semver.org/ -->
   <packaging>bundle</packaging>
   <name>camel-beanstalk</name>
   <inceptionYear>2010</inceptionYear>
