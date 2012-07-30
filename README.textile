@@ -88,40 +88,10 @@ The consumer stores a number of job properties in the @Exchange@:
 
 h2. Using
 
-h3. Building: prerequisites
-
-Download "JavaBeanstalkClient":https://github.com/RTykulsker/JavaBeanstalkClient :
-
-bc. git clone git://github.com/RTykulsker/JavaBeanstalkClient.git
-cd JavaBeanstalkClient
-
-Install it into the local Maven repository
-
-bc. mvn install
-
-Note, beanstalkd daemon must be running for the tests to pass.
-
-h3. Building
-
-Download "camel-beanstalk" project:
-
-bc. git clone git://github.com/osinka/camel-beanstalk.git
-cd camel-beanstalk
-
-Run @release:perform@ with the latest version tag (@v1.1.5@ is shown below as example):
-
-bc. mvn release:perform -Dtag=v1.1.5
-
-This will install all the project binaries (jar, sources and javadoc) into your local Maven repository.
-
-h3. In your project
-
-Once you have it installed in the local Maven repository, add the dependency into your project's @pom.xml@:
-
 bc. <dependency>
   <groupId>com.osinka.camel</groupId>
   <artifactId>camel-beanstalk</artifactId>
-  <version>1.1.5</version>
+  <version>1.5.1</version>
 </dependency>
 
 (you can find the latest version tag in GitHub repository)
