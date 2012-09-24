@@ -46,7 +46,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <camel.version>2.10.0</camel.version>
+    <camel.version>2.10.1</camel.version>
     <jdk.version>1.6</jdk.version>
     <java.src.version>1.5</java.src.version>
   </properties>
@@ -71,7 +71,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>1.6.6</version>
+      <version>1.7.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
