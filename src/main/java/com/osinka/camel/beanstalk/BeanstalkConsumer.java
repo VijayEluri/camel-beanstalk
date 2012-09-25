@@ -154,7 +154,7 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
 
     @Override
     protected void doStart() throws Exception {
-        executor = getEndpoint().getCamelContext().getExecutorServiceStrategy().newSingleThreadExecutor(this, "Beanstalk");
+        executor = getEndpoint().getCamelContext().getExecutorServiceManager().newSingleThreadExecutor(this, "Beanstalk-Consumer");
         executor.execute(initTask);
         sync = new Sync();
         super.doStart();

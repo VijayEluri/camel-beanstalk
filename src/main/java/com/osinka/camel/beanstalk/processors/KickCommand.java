@@ -21,7 +21,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.Message;
 import org.apache.camel.NoSuchHeaderException;
-import org.apache.camel.util.ExchangeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +33,7 @@ public class KickCommand extends DefaultCommand {
 
     @Override
     public void act(final Client client, final Exchange exchange) throws NoSuchHeaderException, InvalidPayloadException {
-        final Integer jobs = ExchangeHelper.getMandatoryInBody(exchange, Integer.class);
+        final Integer jobs = exchange.getIn().getMandatoryBody(Integer.class);
         final int result = client.kick(jobs);
         if (log.isDebugEnabled())
             log.debug(String.format("Kick %d jobs. Kicked %d actually.", jobs, result));
