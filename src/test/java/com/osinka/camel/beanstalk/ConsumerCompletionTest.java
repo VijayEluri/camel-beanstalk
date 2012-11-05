@@ -15,6 +15,7 @@
  */
 package com.osinka.camel.beanstalk;
 
+import com.surftools.BeanstalkClient.BeanstalkException;
 import com.surftools.BeanstalkClient.Job;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -23,7 +24,7 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
 
-public class CompletionTest extends BeanstalkMockTestSupport {
+public class ConsumerCompletionTest extends BeanstalkMockTestSupport {
     final String testMessage = "hello, world";
 
     boolean shouldIdie = false;
@@ -78,6 +79,30 @@ public class CompletionTest extends BeanstalkMockTestSupport {
 
         verify(client, atLeastOnce()).reserve(anyInt());
         verify(client).release(jobId, priority, delay);
+    }
+
+    @Test
+    public void testBeanstalkException() throws Exception {
+        shouldIdie = false;
+        final Job jobMock = mock(Job.class);
+        final long jobId = 111;
+        final byte[] payload = Helper.stringToBytes(testMessage);
+
+        when(jobMock.getJobId()).thenReturn(jobId);
+        when(jobMock.getData()).thenReturn(payload);
+        when(client.reserve(anyInt()))
+                .thenThrow(new BeanstalkException("test"))
+                .thenReturn(jobMock);
+
+        MockEndpoint result = getMockEndpoint("mock:result");
+        result.expectedMessageCount(1);
+        result.expectedBodiesReceived(testMessage);
+        result.expectedPropertyReceived(Headers.JOB_ID, jobId);
+        result.message(0).header(Headers.JOB_ID).isEqualTo(jobId);
+        result.assertIsSatisfied(100);
+
+        verify(client, atLeast(1)).reserve(anyInt());
+        verify(client, times(1)).close();
     }
 
     @Override

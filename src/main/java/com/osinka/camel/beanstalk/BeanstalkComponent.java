@@ -32,6 +32,7 @@ import org.apache.camel.impl.DefaultComponent;
  * <li><code>jobDelay</code></li>
  * <li><code>jobTimeToRun</code></li>
  * <li><code>consumer.onFailure</code></li>
+ * <li><code>consumer.awaitJob</code></li>
  * </ul>
  *
  * @author <a href="mailto:azarov@osinka.com">Alexander Azarov</a>

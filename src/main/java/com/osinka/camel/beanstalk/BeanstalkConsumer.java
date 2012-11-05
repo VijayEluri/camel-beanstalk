@@ -34,6 +34,10 @@ import org.slf4j.LoggerFactory;
 /**
  * PollingConsumer to read Beanstalk jobs.
  *
+ * The consumer may delete the job immediately or based on successful {@link Exchange}
+ * completion. The behavior is configurable by <code>consumer.awaitJob</code>
+ * flag (by default <code>true</code>)
+ *
  * This consumer will add a {@link Synchronization} object to every {@link Exchange}
  * object it creates in order to react on successful exchange completion or failure.
  *
@@ -41,8 +45,7 @@ import org.slf4j.LoggerFactory;
  * called upon the job. In the case of failure the default reaction is to call
  * <code>bury</code>.
  *
- * The only configuration this consumer may have is the reaction on failures: possible
- * variants are "bury", "release" or "delete"
+ * The reaction on failures is configurable: possible variants are "bury", "release" or "delete"
  *
  * @author <a href="mailto:azarov@osinka.com">Alexander Azarov</a>
  */
@@ -51,6 +54,7 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
 
     String onFailure = BeanstalkComponent.COMMAND_BURY;
     boolean useBlockIO = true;
+    boolean deleteImmediately = false;
 
     private Client client = null;
     private ExecutorService executor = null;
@@ -101,7 +105,10 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
                     }
                 }
 
-                exchange.addOnCompletion(sync);
+                if (deleteImmediately)
+                    client.delete(job.getJobId());
+                else
+                    exchange.addOnCompletion(sync);
 
                 return exchange;
             } catch (BeanstalkException e) {
@@ -145,6 +152,14 @@ public class BeanstalkConsumer extends ScheduledPollConsumer {
 
     public void setUseBlockIO(boolean useBlockIO) {
         this.useBlockIO = useBlockIO;
+    }
+
+    public boolean getAwaitJob() {
+        return !deleteImmediately;
+    }
+
+    public void setAwaitJob(boolean awaitingCompletion) {
+        this.deleteImmediately = !awaitingCompletion;
     }
 
     @Override
