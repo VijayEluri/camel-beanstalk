@@ -93,7 +93,7 @@ h2. Using
 bc. <dependency>
   <groupId>com.osinka.camel</groupId>
   <artifactId>camel-beanstalk</artifactId>
-  <version>1.5.1</version>
+  <version>1.6.0</version>
 </dependency>
 
 (you can find the latest version tag in GitHub repository)
