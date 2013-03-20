@@ -146,7 +146,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         verify(client).bury(jobId, priority);
     }
 
-    @Test(expected=CamelExecutionException.class)
+    @Test
     public void testBuryNoJobId() throws Exception {
         endpoint.setCommand(BeanstalkComponent.COMMAND_BURY);
         Producer producer = endpoint.createProducer();
@@ -154,9 +154,11 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
         assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(BuryCommand.class));
 
-        template.send(endpoint, ExchangePattern.InOnly, new Processor() {
+        final Exchange exchange = template.send(endpoint, ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) {}
         });
+
+        assertTrue("Exchange failed", exchange.isFailed());
 
         verify(client, never()).bury(anyLong(), anyLong());
     }
@@ -209,7 +211,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         verify(client).delete(jobId);
     }
 
-    @Test(expected=CamelExecutionException.class)
+    @Test
     public void testDeleteNoJobId() throws Exception {
         endpoint.setCommand(BeanstalkComponent.COMMAND_DELETE);
         Producer producer = endpoint.createProducer();
@@ -217,9 +219,11 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
         assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(DeleteCommand.class));
 
-        template.send(endpoint, ExchangePattern.InOnly, new Processor() {
+        final Exchange exchange = template.send(endpoint, ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) {}
         });
+
+        assertTrue("Exchange failed", exchange.isFailed());
 
         verify(client, never()).delete(anyLong());
     }
@@ -249,7 +253,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         verify(client).release(jobId, priority, delay);
     }
 
-    @Test(expected=CamelExecutionException.class)
+    @Test
     public void testReleaseNoJobId() throws Exception {
         endpoint.setCommand(BeanstalkComponent.COMMAND_RELEASE);
         Producer producer = endpoint.createProducer();
@@ -257,9 +261,11 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
         assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(ReleaseCommand.class));
 
-        template.send(endpoint, ExchangePattern.InOnly, new Processor() {
+        final Exchange exchange = template.send(endpoint, ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) {}
         });
+
+        assertTrue("Exchange failed", exchange.isFailed());
 
         verify(client, never()).release(anyLong(), anyLong(), anyInt());
     }
@@ -314,7 +320,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         verify(client).touch(jobId);
     }
 
-    @Test(expected=CamelExecutionException.class)
+    @Test
     public void testTouchNoJobId() throws Exception {
         endpoint.setCommand(BeanstalkComponent.COMMAND_TOUCH);
         Producer producer = endpoint.createProducer();
@@ -322,9 +328,11 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         assertThat("Producer class", producer, instanceOf(BeanstalkProducer.class));
         assertThat("Processor class", ((BeanstalkProducer)producer).command, instanceOf(TouchCommand.class));
 
-        template.send(endpoint, ExchangePattern.InOnly, new Processor() {
+        final Exchange exchange = template.send(endpoint, ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) {}
         });
+
+        assertTrue("Exchange failed", exchange.isFailed());
 
         verify(client, never()).touch(anyLong());
     }
@@ -378,7 +386,7 @@ public class ProducerTest extends BeanstalkMockTestSupport {
         verify(client, times(2)).put(priority, delay, timeToRun, payload);
     }
 
-    @Test(expected=CamelExecutionException.class)
+    @Test
     public void test2BeanstalkException() throws Exception {
         final long jobId = 111;
 
@@ -386,11 +394,13 @@ public class ProducerTest extends BeanstalkMockTestSupport {
             .thenThrow(new BeanstalkException("test"));
 
         endpoint.setCommand(BeanstalkComponent.COMMAND_TOUCH);
-        template.send(endpoint, ExchangePattern.InOnly, new Processor() {
+        final Exchange exchange = template.send(endpoint, ExchangePattern.InOnly, new Processor() {
             public void process(Exchange exchange) {
                 exchange.getIn().setHeader(Headers.JOB_ID, jobId);
             }
         });
+
+        assertTrue("Exchange failed", exchange.isFailed());
 
         verify(client, times(2)).touch(jobId);
         verify(client, times(1)).close();

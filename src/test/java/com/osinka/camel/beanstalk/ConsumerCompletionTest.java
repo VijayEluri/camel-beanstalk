@@ -52,7 +52,7 @@ public class ConsumerCompletionTest extends BeanstalkMockTestSupport {
         result.expectedBodiesReceived(testMessage);
         result.expectedPropertyReceived(Headers.JOB_ID, jobId);
         result.message(0).header(Headers.JOB_ID).isEqualTo(jobId);
-        result.assertIsSatisfied(1000);
+        result.assertIsSatisfied(2000);
 
         verify(client, atLeastOnce()).reserve(anyInt());
         verify(client).delete(jobId);

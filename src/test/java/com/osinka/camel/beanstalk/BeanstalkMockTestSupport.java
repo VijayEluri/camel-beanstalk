@@ -16,7 +16,7 @@
 package com.osinka.camel.beanstalk;
 
 import com.surftools.BeanstalkClient.Client;
-import org.apache.camel.test.CamelTestSupport;
+import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.mockito.Mock;
