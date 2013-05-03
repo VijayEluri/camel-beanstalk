@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.osinka.camel</groupId>
   <artifactId>camel-beanstalk</artifactId>
-  <version>1.7.0</version> <!-- http://semver.org/ -->
+  <version>1.7.1-SNAPSHOT</version> <!-- http://semver.org/ -->
   <packaging>bundle</packaging>
   <name>camel-beanstalk</name>
   <inceptionYear>2010</inceptionYear>
@@ -37,7 +37,7 @@
     <connection>scm:git:git://github.com/osinka/camel-beanstalk.git</connection>
     <developerConnection>scm:git:git@github.com:osinka/camel-beanstalk.git</developerConnection>
     <url>http://github.com/osinka/camel-beanstalk</url>
-    <tag>v1.7.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
