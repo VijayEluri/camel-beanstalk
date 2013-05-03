@@ -64,7 +64,6 @@ public class EndpointTest {
     }
 
     @Test
-    @Ignore("Apache Camel bug CAMEL-4857")
     public void testTubes() {
         BeanstalkEndpoint endpoint = context.getEndpoint("beanstalk:host:11303/tube1+tube%2B+tube%3F?command=kick", BeanstalkEndpoint.class);
         assertNotNull("Beanstalk endpoint", endpoint);
