@@ -10,7 +10,7 @@ You can find the detailed explanation of Beanstalk job lifecycle at "Beanstalk p
 
 h2. Example
 
-This Camel component lets you both request the jobs for processing and supply them to Beanstald daemon. Our simple demo routes may look like
+This Camel component lets you both request the jobs for processing and supply them to Beanstalkd daemon. Our simple demo routes may look like
 
 bc. from("beanstalk:testTube").
    log("Processing job #${property.beanstalk.jobId} with body ${in.body}").
@@ -90,13 +90,21 @@ The consumer stores a number of job properties in the @Exchange@:
 
 h2. Using
 
+For Apache Camel 2.11.x :
+
+bc. <dependency>
+  <groupId>com.osinka.camel</groupId>
+  <artifactId>camel-beanstalk</artifactId>
+  <version>1.7.0</version>
+</dependency>
+
+For Apache Camel 2.10.x :
+
 bc. <dependency>
   <groupId>com.osinka.camel</groupId>
   <artifactId>camel-beanstalk</artifactId>
   <version>1.6.0</version>
 </dependency>
-
-(you can find the latest version tag in GitHub repository)
 
 h2. License
 
