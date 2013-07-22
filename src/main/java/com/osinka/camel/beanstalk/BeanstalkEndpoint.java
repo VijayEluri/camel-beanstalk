@@ -26,7 +26,7 @@ import org.apache.camel.impl.ScheduledPollEndpoint;
 /**
  * @author <a href="mailto:azarov@osinka.com">Alexander Azarov</a>
  * @see BeanstalkConsumer
- * @see PutProducer
+ * @see com.osinka.camel.beanstalk.processors.PutCommand
  */
 public class BeanstalkEndpoint extends ScheduledPollEndpoint {
     final ConnectionSettings conn;
