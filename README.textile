@@ -1,3 +1,7 @@
+bq. This component will be "part of Apache Camel 2.15":https://github.com/osinka/camel-beanstalk/issues/8
+
+---
+
 h1. Camel component for Beanstalk
 
 "Beanstalk":http://kr.github.com/beanstalkd/ is a simple work queue service.
